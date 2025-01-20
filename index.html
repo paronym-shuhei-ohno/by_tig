@@ -77,11 +77,11 @@
                 if (latestcontents.type === 4) {
                     islive = true;
                     // LIVE(アーカイブ)
-                    playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&embedstock=1&autoplay=true`;
+                    playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&embedstock=1&autoplay=true`;
                 }
                 else if (!latestcontents.type && latestcontents.created_by) {
                     // Short
-                    playerIframe.src = `https://tigmedia.jp/creator/watch?id=${latestcontents.ident}&embedstock=1&autoplay=true`;
+                    playerIframe.src = `https://tigmedia.jp/creator/watch?id=${latestcontents.ident}&sp=1&embedstock=1&autoplay=true`;
                 }
                 elem.appendChild(playerIframe);
 
