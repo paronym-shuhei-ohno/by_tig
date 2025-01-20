@@ -36,6 +36,10 @@
             <div id="tigvideo" class="tigvideo"></div>
         </section>
         <script>
+            let played = false;
+            let latestcnt = 0;
+            let contents = [];
+
             // iframe用DOMの取得
             const elem = document.querySelector('.tigvideo');
             elem.classList.add('tig-player-fill-iframe-wrapper');
@@ -44,22 +48,24 @@
                 console.log('message event=', event);
                 if (event.data.type === 'TigIframe#event#onEnded') {
                     console.log('message event ended!');
+                    played = true;
                     // 次の動画へ
                     elem.removeChild(elem.firstChild);
                     dipspatch();
                 }
             }, false);
 
-
-            let latestcnt = 3;
-            let contents = [];
             const dipspatch = function () {
                 const latestcontents = contents[latestcnt];
                 latestcnt++;
                 console.log('latestcontents=', latestcontents);
                 if (!latestcontents) {
                     // XXX 再生可能なコンテンツが無い
-                    return;
+                    if (!played) {
+                        return;
+                    }
+                    // 一周したので頭から取り直す
+                    getcontents();
                 }
 
                 let islive = false;
@@ -79,66 +85,37 @@
                 }
                 elem.appendChild(playerIframe);
 
-                if (islive) {
-                    setTimeout(() => {
-                        console.log('postMessage play!!!');
-                        playerIframe.contentWindow.postMessage('play', '*');
-                    }, 5000);
-                }
-
-                // ここでDOMが追加される
-                //document.body.appendChild(fixedDiv);
-
-                // // fixするelementを作成
-                // const fixedDiv = document.createElement('div');
-                // fixedDiv.classList.add('tig-player-fill-iframe-wrapper');
-
-                // const playerIframe = document.createElement('iframe');
-                // tigPlayerIframe = playerIframe;
-                // // ※ embedstock=1 を付けないとフローティング埋め込み時のプレイヤーとストックデータが分断されてしまう
-                // playerIframe.src = `${Config.LIVE_WATCH_URL}?id=${contentIdentifier}&gid=${groupId}&embedstock=1` + urlParamText;
-                // fixedDiv.appendChild(playerIframe);
-
-                // // ここでDOMが追加される
-                // document.body.appendChild(fixedDiv);
-
-                // initTigMultiEmbed([
-                //     {
-                //         functionName: 'initTigArchiveEmbed',
-                //         args: {
-                //             type: 'fill',
-                //             target: '#tigvideo',
-                //             groupId: latestcontents.gind,
-                //             contentsId: latestcontents.ident,
-                //         }
-                //     },
-                //     {
-                //         functionName: 'initTigCreatorEmbed',
-                //         args: {
-                //             type: 'direct',
-                //             target: '#tigvideo',
-                //             groupId: latestcontents.gind,
-                //             contentsId: latestcontents.ident,
-                //         }
-                //     }
-                // ]);
-            };
-
-            fetch('https://api.tigmedia.jp/v2/cl-media')
-            .then(response => response.json())
-            .then(data => {
-                console.log('data=', data);
-                if (data.error != '') {
-                    // エラー終了
-                    console.error('error=', data.error);
-                    alert(data.error);
-                }
-                if (data.contents_list) {
-                    console.log('data.contents_list=', data.contents_list);
-                    contents = data.contents_list;
+                if (!islive) {
+                    // XXX 今のところLIVE(アーカイブ)のみ
                     dipspatch();
                 }
-            });
+
+                setTimeout(() => {
+                    console.log('postMessage play!!!');
+                    playerIframe.contentWindow.postMessage('play', '*');
+                }, 5000);
+            };
+
+            const getcontents = function () {
+                fetch('https://api.tigmedia.jp/v2/cl-media')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('data=', data);
+                    if (data.error != '') {
+                        // エラー終了
+                        console.error('error=', data.error);
+                        alert(data.error);
+                    }
+                    if (data.contents_list) {
+                        console.log('data.contents_list=', data.contents_list);
+                        latestcnt = 0;
+                        contents = data.contents_list;
+                        dipspatch();
+                    }
+                });
+            };
+
+            getcontents();
         </script>
     </body>
 </html>
