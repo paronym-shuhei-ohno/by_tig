@@ -15,13 +15,17 @@
             }
             .title {
                 padding: 10px;
+                padding-bottom: 0;
+                margin-bottom: 10px;
                 font-size: 20px;
                 font-weight: bold;
-                height: 50px;
+                height: 70px;
                 line-height: 30px;
+                overflow: hidden;
+                text-overflow:  ellipsis;
             }
             #tigvideo iframe {
-                height: calc(100% - 50px);
+                height: calc(100% - 80px);
                 width: 100%;
             }
         </style>
@@ -32,17 +36,75 @@
     </head>
     <body>
         <section class="main">
-            <h1 class="title">by Tig <img src="./logo.png" height="30"/></h1>
+            <h1 class="title">by Tig <img src="./logo.png" height="30"/> <span id="contentstitle"></span></h1>
             <div id="tigvideo" class="tigvideo"></div>
         </section>
         <script>
-            let played = false;
-            let latestcnt = 0;
-            let contents = [];
+            let nowlive = false;
 
             // iframe用DOMの取得
             const elem = document.querySelector('.tigvideo');
             elem.classList.add('tig-player-fill-iframe-wrapper');
+
+            const livecheck = function (first) {
+                console.log('livecheck');
+                if (nowlive) {
+                    // LIVE中終了をチェック
+                    if (playerIframe.contentWindow.document.querySelector('.after-filler-wrapper')) {
+                        // ライブ終了
+                        nowlive = false;
+                        getcontents();
+                    }
+                    return;
+                }
+                else {
+                    fetch('https://api.tigmedia.jp/v2/cl-media?live=1')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('data=', data);
+                        if (data.contents_list instanceof Array && 0 < data.contents_list.length) {
+                            nowlive = true;
+                            // 10分以内にLIVEがあるのでLIVEモードへ強制以降
+                            const latestcontents = data.contents_list[0];
+                            if (elem.firstChild) elem.removeChild(elem.firstChild);
+                            const playerIframe = document.createElement('iframe');
+                            playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
+                            playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
+                            elem.appendChild(playerIframe);
+                            document.querySelector('#contentstitle').textContent = latestcontents.title;
+                            let isloaded = false;
+                            playerIframe.addEventListener('load', function() {
+                                console.log('onload', isloaded);
+                                if (isloaded) {
+                                    return;
+                                }
+                                setTimeout(() => {
+                                    isloaded = true;
+                                    playerIframe.contentWindow.document.querySelector('.play-image').click();
+                                }, 1000);
+                            });
+                        }
+                        else if (first) {
+                            // 初回のみ
+                            getcontents();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('error=', error);
+                        if (first) {
+                            // 初回のみ
+                            getcontents();
+                        }
+                    });
+                }
+            };
+
+            // 5分感覚でLIVEの存在チェック
+            const livecheckinterval = setInterval(() => livecheck, 60000 * 5);
+
+            let played = false;
+            let latestcnt = 0;
+            let contents = [];
 
             window.addEventListener('message', function (event) {
                 console.log('message event=', event);
@@ -84,6 +146,7 @@
                     playerIframe.src = `https://tigmedia.jp/creator/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
                 }
                 elem.appendChild(playerIframe);
+                document.querySelector('#contentstitle').textContent = latestcontents.title;
 
                 if (!islive) {
                     // XXX 今のところLIVE(アーカイブ)のみ
@@ -112,10 +175,12 @@
                         contents = data.contents_list;
                         dipspatch();
                     }
+                })
+                .catch(error => {
+                    console.error('error=', error);
                 });
             };
-
-            getcontents();
+            livecheck(true);
         </script>
     </body>
 </html>
