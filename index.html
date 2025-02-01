@@ -40,6 +40,7 @@
             <div id="tigvideo" class="tigvideo"></div>
         </section>
         <script>
+            const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWYiOlsiZmlsZTovLyIsImxvY2FsaG9zdDo4MDgwIiwibG9jYWxob3N0OjgwODEiLCJsb2NhbGhvc3Q6MzAwMCIsInBhcm9ueW0tc2h1aGVpLW9obm8uZ2l0aHViLmlvIl19.5ESN7Ee7XBpu2jNmY3BxxI26XnPQ1nY8Hq2Mv6O2PSg';
             let nowlive = false;
 
             // iframe用DOMの取得
@@ -58,7 +59,7 @@
                     return;
                 }
                 else {
-                    fetch('https://api.tigmedia.jp/v2/cl-media?live=1')
+                    fetch('https://api.tigmedia.jp/v2/cl-media?live=1&jwt=' + jwt)
                     .then(response => response.json())
                     .then(data => {
                         console.log('data=', data);
@@ -160,7 +161,7 @@
             };
 
             const getcontents = function () {
-                fetch('https://api.tigmedia.jp/v2/cl-media')
+                fetch('https://api.tigmedia.jp/v2/cl-media?jwt=' + jwt)
                 .then(response => response.json())
                 .then(data => {
                     console.log('data=', data);
