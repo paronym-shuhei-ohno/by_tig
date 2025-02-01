@@ -28,11 +28,14 @@
                 height: calc(100% - 80px);
                 width: 100%;
             }
+
+            .tig-creator-fill-frame-wrapper {
+                height: calc(100% - 80px) !important;
+                top: 80px !important;
+            }
         </style>
-        <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/hls.min.js@1"></script> -->
-        <!-- <script src="https://cdn.tigmedia.jp/v3/latest/js/tig-embed-controller.js" defer></script>
-        <script src="https://cdn.tigmedia.jp/v3/latest/js/tig-archive-embed.js" defer></script>
-        <script type="module" src="https://cdn.tigmedia.jp/creator/embed/js/tig-creator-embed.js"></script> -->
+        <!-- <script src="https://cdn.jsdelivr.net/npm/hls.js@1" async=""></script> -->
+        <script src="https://cdn.tigmedia.jp/creator/embed/js/tig-creator-embed.js" defer></script>
     </head>
     <body>
         <section class="main">
@@ -110,13 +113,36 @@
             // 5分感覚でLIVEの存在チェック
             const livecheckinterval = setInterval(() => livecheck(), 60000 * 3);
 
+            let latestcontentsID = null;
+            let currentcontentsID = null;
+            let playerIframe = null;
             let played = false;
             let latestcnt = 0;
             let contents = [];
 
             window.addEventListener('message', function (event) {
-                console.log('message event=', event);
-                if (event.data.type === 'TigIframe#event#onEnded') {
+                //console.log('message event=', event);
+                if (event.data === 'tig.ready' && playerIframe) {
+                    console.log('message event archive ready!');
+                    playerIframe.contentWindow.postMessage('play', '*');
+                }
+                else if (event.data.type && event.data.type === 'TigIframe#event#onPlay') {
+                    // 実質Shortの終了イベントど同義
+                    console.log('message tig2embed.event.readyToPlay currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
+                    if (latestcontentsID == currentcontentsID && event.data.data && event.data.data.content_id == currentcontentsID) {
+                        // 今再生しているコンテンツIDと同じIDの再生なら止めて次へ
+                        played = true;
+                        // 次の動画へ
+                        latestcontentsID = null;
+                        currentcontentsID = null;
+                        document.querySelector('.tig-creator-fill-frame-wrapper').remove();
+                        dipspatch();
+                    }
+                    else if (event.data.data && event.data.data.content_id == currentcontentsID) {
+                        latestcontentsID = '' + currentcontentsID;
+                    }
+                }
+                else if (event.data.type && event.data.type === 'TigIframe#event#onEnded') {
                     console.log('message event ended!');
                     played = true;
                     // 次の動画へ
@@ -126,6 +152,7 @@
             }, false);
 
             const dipspatch = function () {
+                playerIframe = null;
                 const latestcontents = contents[latestcnt];
                 latestcnt++;
                 console.log('latestcontents=', latestcontents);
@@ -141,30 +168,51 @@
                 let islive = false;
 
                 // fixするelementを作成
-                const playerIframe = document.createElement('iframe');
-                playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
+                const _playerIframe = document.createElement('iframe');
+                _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
                 // コンテンツタイプで振り分け
                 if (latestcontents.type === 4) {
                     islive = true;
                     // LIVE(アーカイブ)
-                    playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
+                    _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
+                    _playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
+                    playerIframe = _playerIframe;
+                    elem.appendChild(playerIframe);
+                    currentcontentsID = latestcontents.ident;
                 }
                 else if (!latestcontents.type && latestcontents.created_by) {
                     // Short
-                    playerIframe.src = `https://tigmedia.jp/creator/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
+                    // _playerIframe.allow = 'autoplay; fullscreen;';
+                    // _playerIframe.src = `https://tigmedia.jp/creator/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
+                    window.history.pushState(null, null, `?id=${latestcontents.ident}`);
+                    window.initTigCreatorEmbed({
+                        type: "fill",
+                        target: '#tigvideo',
+                        contentsId: latestcontents.ident,
+                        groupId: latestcontents.gind,
+                        urlParam: {},
+                        embedParam: {
+                            minimizeFloating: "close"
+                        },
+                    });
+                    currentcontentsID = latestcontents.ident;
+                    latestcontentsID = null;
                 }
-                elem.appendChild(playerIframe);
-                document.querySelector('#contentstitle').textContent = latestcontents.title;
+                else {
+                   // その他
+                   dipspatch();
+                   return;
+                }
 
-                if (!islive) {
+                //if (!islive) {
                     // XXX 今のところLIVE(アーカイブ)のみ
-                    dipspatch();
-                }
+                    //dipspatch();
+                    //return;
+                //}
 
-                setTimeout(() => {
-                    console.log('postMessage play!!!');
-                    playerIframe.contentWindow.postMessage('play', '*');
-                }, 5000);
+                // playerIframe = _playerIframe;
+                // elem.appendChild(playerIframe);
+                document.querySelector('#contentstitle').textContent = latestcontents.title;
             };
 
             const getcontents = function () {
