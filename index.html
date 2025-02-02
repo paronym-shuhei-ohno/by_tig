@@ -19,8 +19,8 @@
                 pointer-events: none;
                 background-color: rgba(0, 0, 0, 0.5);
                 top: 0;
-                padding: 60px;
-                padding-top: 10px;
+                padding: 10px;
+                padding-right: 40px;
                 padding-bottom: 0;
                 margin-bottom: 10px;
                 font-size: 20px;
@@ -81,9 +81,9 @@
                     fetch('https://api.tigmedia.jp/v2/cl-media?live=1&jwt=' + jwt)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('data=', data);
+                        console.log('data=', data, first);
+                        nowlive = true;
                         if (data.contents_list instanceof Array && 0 < data.contents_list.length) {
-                            nowlive = true;
                             // 10分以内にLIVEがあるのでLIVEモードへ強制以降
                             const latestcontents = data.contents_list[0];
                             if (elem.firstChild) elem.removeChild(elem.firstChild);
@@ -120,7 +120,7 @@
             };
 
             // 5分感覚でLIVEの存在チェック
-            const livecheckinterval = setInterval(() => livecheck(), 60000 * 3);
+            const livecheckinterval = setInterval(() => livecheck(), 60000 * 1);
 
             let latestcontentsID = null;
             let currentcontentsID = null;
@@ -130,15 +130,33 @@
             let contents = [];
 
             window.addEventListener('message', function (event) {
-                //console.log('message event=', event);
+                console.log('message event=', event);
                 if (event.data === 'tig.ready' && playerIframe) {
                     console.log('message event archive ready!');
                     playerIframe.contentWindow.postMessage('play', '*');
                 }
+                else if (event.data.type && event.data.type === 'TigIframe#event#onReady') {
+                    // ライブの終了を検知
+                    console.log('message TigIframe#event#onReady=', event.data.data);
+                    if (event.data.data && event.data.data.live_status && event.data.data.live_status == 'after') {
+                        console.log('message TigIframe#event#onReady=', liveplayerIframe, playerIframe);
+                        if (liveplayerIframe) {
+                            // ライブ終了
+                            nowlive = false;
+                            if (elem.firstChild) elem.removeChild(elem.firstChild);
+                            getcontents();
+                        }
+                        else if (playerIframe) {
+                            // 次の動画へ
+                            if (elem.firstChild) elem.removeChild(elem.firstChild);
+                            dipspatch();
+                        }
+                    }
+                }
                 else if (event.data.type && event.data.type === 'TigIframe#event#onPlay') {
-                    // 実質Shortの終了イベントど同義
-                    console.log('message tig2embed.event.readyToPlay currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
-                    if (latestcontentsID == currentcontentsID && event.data.data && event.data.data.content_id == currentcontentsID) {
+                    // Shortの終了イベント判定
+                    if (latestcontentsID == currentcontentsID && event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id == currentcontentsID) {
+                        console.log('message TigIframe#event#onPlay currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                         // 今再生しているコンテンツIDと同じIDの再生なら止めて次へ
                         played = true;
                         // 次の動画へ
@@ -147,7 +165,8 @@
                         document.querySelector('.tig-creator-fill-frame-wrapper').remove();
                         dipspatch();
                     }
-                    else if (event.data.data && event.data.data.content_id == currentcontentsID) {
+                    else if (event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id == currentcontentsID) {
+                        console.log('message TigIframe#event#onPlay currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                         latestcontentsID = '' + currentcontentsID;
                     }
                 }
@@ -155,7 +174,7 @@
                     console.log('message event ended!');
                     played = true;
                     // 次の動画へ
-                    elem.removeChild(elem.firstChild);
+                    if (elem.firstChild) elem.removeChild(elem.firstChild);
                     dipspatch();
                 }
             }, false);
