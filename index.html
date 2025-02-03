@@ -152,6 +152,13 @@
                             dipspatch();
                         }
                     }
+                    else if (event.data.data && event.data.data.live_status && event.data.data.live_status == 'before') {
+                        if (!liveplayerIframe && playerIframe) {
+                            // 次の動画へ
+                            if (elem.firstChild) elem.removeChild(elem.firstChild);
+                            dipspatch();
+                        }
+                    }
                 }
                 else if (event.data.type && event.data.type === 'TigIframe#event#onPlay') {
                     // Shortの終了イベント判定
@@ -199,7 +206,7 @@
                 const _playerIframe = document.createElement('iframe');
                 _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
                 // コンテンツタイプで振り分け
-                if (latestcontents.type === 4) {
+                if (latestcontents.type === 4 && latestcontents.archive_status === 2) {
                     islive = true;
                     // LIVE(アーカイブ)
                     _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
