@@ -69,6 +69,7 @@
                     if (liveplayerIframe && liveplayerIframe.contentWindow.document.querySelector('.after-filler-wrapper')) {
                         console.log('livecheck nowlive=', nowlive);
                         // ライブ終了
+                        liveplayerIframe = null;
                         nowlive = false;
                         if (elem.firstChild) elem.removeChild(elem.firstChild);
                         getcontents();
@@ -101,7 +102,9 @@
                                 }
                                 setTimeout(() => {
                                     isloaded = true;
-                                    liveplayerIframe.contentWindow.document.querySelector('.play-image').click();
+                                    console.log('!!!!!!!!!! live start !!!!!!!!!!', isloaded);
+                                    if (liveplayerIframe) liveplayerIframe.contentWindow.postMessage('play', '*');
+                                    //liveplayerIframe.contentWindow.document.querySelector('.play-image').click();
                                 }, 1000);
                             });
                         }
@@ -143,6 +146,7 @@
                         console.log('message TigIframe#event#onReady=', liveplayerIframe, playerIframe);
                         if (liveplayerIframe) {
                             // ライブ終了
+                            liveplayerIframe = null;
                             nowlive = false;
                             if (elem.firstChild) elem.removeChild(elem.firstChild);
                             getcontents();
