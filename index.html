@@ -103,7 +103,7 @@
                                 setTimeout(() => {
                                     isloaded = true;
                                     console.log('!!!!!!!!!! live start !!!!!!!!!!', isloaded);
-                                    if (liveplayerIframe) liveplayerIframe.contentWindow.postMessage('play', '*');
+                                    if (liveplayerIframe) liveplayerIframe.contentWindow.postMessage('hideflyer', '*');
                                     //liveplayerIframe.contentWindow.document.querySelector('.play-image').click();
                                 }, 1000);
                             });
