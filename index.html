@@ -196,10 +196,14 @@
                     playerIframe = null;
                     const latestcontents = contents[latestcnt];
                     latestcnt++;
-                    console.log('latestcontents=', latestcontents);
+                    console.log('latestcontents=', latestcontents, latestcnt, played);
                     if (!latestcontents) {
                         // XXX 再生可能なコンテンツが無い
                         if (!played) {
+                            // 10分後に再トライ
+                            setTimeout(() => {
+                                getcontents();
+                            }, 600000);
                             return;
                         }
                         // 一周したので頭から取り直す
@@ -221,7 +225,7 @@
                         elem.appendChild(playerIframe);
                         currentcontentsID = latestcontents.ident;
                     }
-                    else if (!latestcontents.type && latestcontents.created_by && true === latestcontents.app_public) {
+                    else if (!latestcontents.type && latestcontents.created_by) {
                         // Short
                         window.history.pushState(null, null, `?id=${latestcontents.ident}`);
                         window.initTigCreatorEmbed({
