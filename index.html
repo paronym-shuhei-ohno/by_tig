@@ -220,10 +220,8 @@
                     elem.appendChild(playerIframe);
                     currentcontentsID = latestcontents.ident;
                 }
-                else if (!latestcontents.type && latestcontents.created_by) {
+                else if (!latestcontents.type && latestcontents.created_by && true === latestcontents.app_public) {
                     // Short
-                    // _playerIframe.allow = 'autoplay; fullscreen;';
-                    // _playerIframe.src = `https://tigmedia.jp/creator/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
                     window.history.pushState(null, null, `?id=${latestcontents.ident}`);
                     window.initTigCreatorEmbed({
                         type: "fill",
@@ -244,14 +242,6 @@
                    return;
                 }
 
-                //if (!islive) {
-                    // XXX 今のところLIVE(アーカイブ)のみ
-                    //dipspatch();
-                    //return;
-                //}
-
-                // playerIframe = _playerIframe;
-                // elem.appendChild(playerIframe);
                 document.querySelector('#contentstitle').textContent = latestcontents.title;
             };
 
