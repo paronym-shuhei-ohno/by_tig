@@ -167,8 +167,9 @@
                 }
                 else if (event.data.type && event.data.type === 'TigIframe#event#onPlay') {
                     // Shortの終了イベント判定
+                    console.log('message TigIframe#event#onPlay1 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                     if (latestcontentsID == currentcontentsID && event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id == currentcontentsID) {
-                        console.log('message TigIframe#event#onPlay currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
+                        console.log('message TigIframe#event#onPlay2 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                         // 今再生しているコンテンツIDと同じIDの再生なら止めて次へ
                         played = true;
                         // 次の動画へ
@@ -178,7 +179,7 @@
                         dipspatch();
                     }
                     else if (event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id == currentcontentsID) {
-                        console.log('message TigIframe#event#onPlay currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
+                        console.log('message TigIframe#event#onPlay3 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                         latestcontentsID = '' + currentcontentsID;
                     }
                 }
