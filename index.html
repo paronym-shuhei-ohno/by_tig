@@ -87,12 +87,22 @@
                         if (data.contents_list instanceof Array && 0 < data.contents_list.length) {
                             // 10分以内にLIVEがあるのでLIVEモードへ強制以降
                             const latestcontents = data.contents_list[0];
+                            // テストは無視
+                            // if (0 === latestcontents.title.indexOf('テスト') || 0 === latestcontents.title.indexOf('/(テスト|test)$/')) {
+                            //     if (first) {
+                            //         // 初回のみ
+                            //         getcontents();
+                            //     }
+                            //     return;
+                            // }
+
                             if (elem.firstChild) elem.removeChild(elem.firstChild);
                             liveplayerIframe = document.createElement('iframe');
                             liveplayerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
                             liveplayerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
                             elem.appendChild(liveplayerIframe);
                             document.querySelector('#contentstitle').textContent = latestcontents.title;
+                            if ()
                             let isloaded = false;
                             liveplayerIframe.addEventListener('load', function() {
                                 console.log('onload', isloaded);
@@ -192,57 +202,65 @@
             }, false);
 
             const dipspatch = function () {
-                playerIframe = null;
-                const latestcontents = contents[latestcnt];
-                latestcnt++;
-                console.log('latestcontents=', latestcontents);
-                if (!latestcontents) {
-                    // XXX 再生可能なコンテンツが無い
-                    if (!played) {
+                try {
+                    playerIframe = null;
+                    const latestcontents = contents[latestcnt];
+                    latestcnt++;
+                    console.log('latestcontents=', latestcontents);
+                    if (!latestcontents) {
+                        // XXX 再生可能なコンテンツが無い
+                        if (!played) {
+                            return;
+                        }
+                        // 一周したので頭から取り直す
+                        getcontents();
+                    }
+
+                    let islive = false;
+
+                    // fixするelementを作成
+                    const _playerIframe = document.createElement('iframe');
+                    _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
+                    // コンテンツタイプで振り分け
+                    if (latestcontents.type === 4 && latestcontents.archive_status === 2) {
+                        islive = true;
+                        // LIVE(アーカイブ)
+                        _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
+                        _playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
+                        playerIframe = _playerIframe;
+                        elem.appendChild(playerIframe);
+                        currentcontentsID = latestcontents.ident;
+                    }
+                    else if (!latestcontents.type && latestcontents.created_by && true === latestcontents.app_public) {
+                        // Short
+                        window.history.pushState(null, null, `?id=${latestcontents.ident}`);
+                        window.initTigCreatorEmbed({
+                            type: "fill",
+                            target: '#tigvideo',
+                            contentsId: latestcontents.ident,
+                            groupId: latestcontents.gind,
+                            urlParam: {},
+                            embedParam: {
+                                minimizeFloating: "close"
+                            },
+                        });
+                        currentcontentsID = latestcontents.ident;
+                        latestcontentsID = null;
+                    }
+                    else {
+                        // その他
+                        dipspatch();
                         return;
                     }
-                    // 一周したので頭から取り直す
-                    getcontents();
-                }
 
-                let islive = false;
-
-                // fixするelementを作成
-                const _playerIframe = document.createElement('iframe');
-                _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
-                // コンテンツタイプで振り分け
-                if (latestcontents.type === 4 && latestcontents.archive_status === 2) {
-                    islive = true;
-                    // LIVE(アーカイブ)
-                    _playerIframe.allow = 'autoplay; fullscreen; web-share; clipboard-write';
-                    _playerIframe.src = `https://tigmedia.jp/live/watch?id=${latestcontents.ident}&sp=1&view=sp&embedstock=1&autoplay=true`;
-                    playerIframe = _playerIframe;
-                    elem.appendChild(playerIframe);
-                    currentcontentsID = latestcontents.ident;
+                    document.querySelector('#contentstitle').textContent = latestcontents.title;
                 }
-                else if (!latestcontents.type && latestcontents.created_by && true === latestcontents.app_public) {
-                    // Short
-                    window.history.pushState(null, null, `?id=${latestcontents.ident}`);
-                    window.initTigCreatorEmbed({
-                        type: "fill",
-                        target: '#tigvideo',
-                        contentsId: latestcontents.ident,
-                        groupId: latestcontents.gind,
-                        urlParam: {},
-                        embedParam: {
-                            minimizeFloating: "close"
-                        },
-                    });
-                    currentcontentsID = latestcontents.ident;
-                    latestcontentsID = null;
+                catch (e) {
+                    // エラーを確認
+                    console.error('catch error=', e);
+                    dipspatch();
+                    return;
                 }
-                else {
-                   // その他
-                   dipspatch();
-                   return;
-                }
-
-                document.querySelector('#contentstitle').textContent = latestcontents.title;
             };
 
             const getcontents = function () {
