@@ -64,6 +64,7 @@
                 console.log('livecheck');
                 if (nowlive) {
                     console.log('is live end??');
+                    if (liveplayerIframe) liveplayerIframe.contentWindow.postMessage('hideflyer', '*');
                     // LIVE中は終了をチェック
                     console.log('livecheck liveplayerIframe=', liveplayerIframe);
                     if (liveplayerIframe && liveplayerIframe.contentWindow.document.querySelector('.after-filler-wrapper')) {
