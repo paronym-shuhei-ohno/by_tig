@@ -269,8 +269,8 @@
                     console.log('data=', data);
                     getcount++;
                     console.log('getcontents getcount=', getcount);
-                    if (1000 < getcount) {
-                        // 1000回以上の実行は一回強制リロードしてリセット(メモリーリーク対応)
+                    if (100 < getcount) {
+                        // 100回以上の実行は一回強制リロードしてリセット(メモリーリーク対応)
                         location.reload();
                     }
                     if (data.error != '') {
