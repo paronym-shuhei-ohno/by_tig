@@ -185,11 +185,24 @@
                         latestcontentsID = null;
                         currentcontentsID = null;
                         document.querySelector('.tig-creator-fill-frame-wrapper').remove();
+                        if (elem.firstChild) elem.removeChild(elem.firstChild);
                         dipspatch();
                     }
                     else if (event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id == currentcontentsID) {
                         console.log('message TigIframe#event#onPlay3 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                         latestcontentsID = '' + currentcontentsID;
+                    }
+                    else if (event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id != currentcontentsID) {
+                        console.log('message TigIframe#event#onPlay4 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
+                        console.log('message event ended!');
+                        played = true;
+                        // 次の動画へ
+                        // 次の動画へ
+                        latestcontentsID = null;
+                        currentcontentsID = null;
+                        document.querySelector('.tig-creator-fill-frame-wrapper').remove();
+                        if (elem.firstChild) elem.removeChild(elem.firstChild);
+                        dipspatch();
                     }
                 }
                 else if (event.data.type && event.data.type === 'TigIframe#event#onEnded') {
