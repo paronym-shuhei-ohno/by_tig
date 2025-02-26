@@ -53,13 +53,21 @@
         </section>
         <script>
             const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWYiOlsiZmlsZTovLyIsImxvY2FsaG9zdDo4MDgwIiwibG9jYWxob3N0OjgwODEiLCJsb2NhbGhvc3Q6MzAwMCIsInBhcm9ueW0tc2h1aGVpLW9obm8uZ2l0aHViLmlvIl19.5ESN7Ee7XBpu2jNmY3BxxI26XnPQ1nY8Hq2Mv6O2PSg';
-            let nowlive = false;
 
             // iframe用DOMの取得
             const elem = document.querySelector('.tigvideo');
             elem.classList.add('tig-player-fill-iframe-wrapper');
 
+            let latestcontentsID = null;
+            let currentcontentsID = null;
             let liveplayerIframe = null;
+            let playerIframe = null;
+            let played = false;
+            let latestcnt = 0;
+            let contents = [];
+            let getcount = 0;
+            let nowlive = false;
+
             const livecheck = function (first) {
                 console.log('livecheck');
                 if (nowlive) {
@@ -71,6 +79,8 @@
                         console.log('livecheck nowlive=', nowlive);
                         // ライブ終了
                         liveplayerIframe = null;
+                        latestcontentsID = null;
+                        currentcontentsID = null;
                         nowlive = false;
                         if (elem.firstChild) elem.removeChild(elem.firstChild);
                         getcontents();
@@ -129,14 +139,6 @@
                 livecheck();
             }, 60000 * 3);
 
-            let latestcontentsID = null;
-            let currentcontentsID = null;
-            let playerIframe = null;
-            let played = false;
-            let latestcnt = 0;
-            let contents = [];
-            let getcount = 0;
-
             window.addEventListener('message', function (event) {
                 console.log('message event=', event);
                 if (event.data === 'tig.ready' && playerIframe) {
@@ -151,6 +153,8 @@
                         if (liveplayerIframe) {
                             // ライブ終了
                             liveplayerIframe = null;
+                            latestcontentsID = null;
+                            currentcontentsID = null;
                             nowlive = false;
                             if (elem.firstChild) elem.removeChild(elem.firstChild);
                             getcontents();
@@ -174,6 +178,7 @@
                     console.log('message TigIframe#event#onPlay1 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
                     if (latestcontentsID == currentcontentsID && event.data.data && event.data.data.content_type != 'live' && event.data.data.content_id == currentcontentsID) {
                         console.log('message TigIframe#event#onPlay2 currentcontentsID=', currentcontentsID, latestcontentsID, event.data);
+                        liveplayerIframe = null;
                         // 今再生しているコンテンツIDと同じIDの再生なら止めて次へ
                         played = true;
                         // 次の動画へ
@@ -229,6 +234,7 @@
                         playerIframe = _playerIframe;
                         elem.appendChild(playerIframe);
                         currentcontentsID = latestcontents.ident;
+                        latestcontentsID = null;
                     }
                     else if (!latestcontents.type && latestcontents.created_by) {
                         // Short
