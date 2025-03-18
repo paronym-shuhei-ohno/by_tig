@@ -249,22 +249,22 @@
                         currentcontentsID = latestcontents.ident;
                         latestcontentsID = null;
                     }
-                    else if (!latestcontents.type && latestcontents.created_by) {
-                        // Short
-                        window.history.pushState(null, null, `?id=${latestcontents.ident}&time=${new Date().getTime()}`);
-                        window.initTigCreatorEmbed({
-                            type: "fill",
-                            target: '#tigvideo',
-                            contentsId: latestcontents.ident,
-                            groupId: latestcontents.gind,
-                            urlParam: {},
-                            embedParam: {
-                                minimizeFloating: "close"
-                            },
-                        });
-                        currentcontentsID = latestcontents.ident;
-                        latestcontentsID = null;
-                    }
+                    // else if (!latestcontents.type && latestcontents.created_by) {
+                    //     // Short
+                    //     window.history.pushState(null, null, `?id=${latestcontents.ident}&time=${new Date().getTime()}`);
+                    //     window.initTigCreatorEmbed({
+                    //         type: "fill",
+                    //         target: '#tigvideo',
+                    //         contentsId: latestcontents.ident,
+                    //         groupId: latestcontents.gind,
+                    //         urlParam: {},
+                    //         embedParam: {
+                    //             minimizeFloating: "close"
+                    //         },
+                    //     });
+                    //     currentcontentsID = latestcontents.ident;
+                    //     latestcontentsID = null;
+                    // }
                     else {
                         // その他
                         dipspatch();
