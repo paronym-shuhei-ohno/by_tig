@@ -251,7 +251,7 @@
                     }
                     else if (!latestcontents.type && latestcontents.created_by) {
                         // Short
-                        window.history.pushState(null, null, `?id=${latestcontents.ident}`);
+                        window.history.pushState(null, null, `?id=${latestcontents.ident}&time=${new Date().getTime()}`);
                         window.initTigCreatorEmbed({
                             type: "fill",
                             target: '#tigvideo',
